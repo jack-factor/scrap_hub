@@ -1,8 +1,15 @@
 from urllib.request import urlopen
 from bs4 import BeautifulSoup
+from PIL import Image
+import os
 
 USER_GH = 'jack-factor'
 BASE_URL = 'https://github.com/'
+IMAGE_PATH = 'resources/img/'
+
+"""
+Html to Object
+"""
 
 
 def get_obj_current_page(user):
@@ -25,6 +32,7 @@ def get_index_data(user=USER_GH):
     username = mainContent.find('span', {'class': 'vcard-username'})
     html_bio = mainContent.find('div', {'class': 'user-profile-bio'})
     image = mainContent.find('img', {'class': 'avatar'})['src']
+    image_name = __process_image(username.text, image)
 
     # description
     description = ''
@@ -38,7 +46,7 @@ def get_index_data(user=USER_GH):
                          'name': item['aria-label']})
     data['organization'] = org_data
     data['name'] = name.text
-    data['image'] = image
+    data['image'] = image_name
     data['username'] = username.text
     data['description'] = description
     # repositories
@@ -66,6 +74,37 @@ def get_index_data(user=USER_GH):
             'langauage': text_language})
     data['repositories'] = repo_data
     return data
+
+
+"""
+Process image and save
+"""
+
+
+def __process_image(image_name, image_url, image_path=IMAGE_PATH):
+    # open url image (the image not show extension)
+    uopen = urlopen(image_url)
+    # set paths
+    image_path_full = image_path + image_name
+    # verify directory
+    if not os.path.exists(image_path):
+        os.makedirs(image_path)
+    # create a file image without extension
+    f = open(image_path_full, 'wb')
+    f.write(uopen.read())
+    f.close()
+    # use pillow to open image
+    image_file = Image.open(image_path_full)
+    # read format
+    image_format = image_file.format.lower()
+    # concat new name
+    new_name = image_name + '.' + image_format
+    # save image whit new name
+    image_file.save(image_path + new_name)
+    # remove old image
+    os.unlink(image_path_full)
+    # return new name
+    return new_name
 
 
 pageObj = get_index_data()
