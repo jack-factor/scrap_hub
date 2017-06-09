@@ -105,7 +105,3 @@ def __process_image(image_name, image_url, image_path=IMAGE_PATH):
     os.unlink(image_path_full)
     # return new name
     return new_name
-
-
-pageObj = get_index_data()
-print(pageObj)
